@@ -1,14 +1,15 @@
 export default class TweetService {
-  constructor(http, tokenStorage){
+  constructor(http, tokenStorage, socket) {
     this.http = http;
     this.tokenStorage = tokenStorage;
+    this.socket = socket;
   }
 
   async getTweets(username) {
     const query = username ? `?username=${username}` : '';
     return this.http.fetch(`/tweets${query}`, {
       method: 'GET',
-      headers: this.getHeaders()
+      headers: this.getHeaders(),
     });
   }
 
@@ -16,29 +17,33 @@ export default class TweetService {
     return this.http.fetch(`/tweets`, {
       method: 'POST',
       headers: this.getHeaders(),
-      body: JSON.stringify({text, username:'김사과', name:'apple'})
+      body: JSON.stringify({ text, username: 'apple', name: '김사과' }),
     });
   }
-  
+
   async deleteTweet(tweetId) {
     return this.http.fetch(`/tweets/${tweetId}`, {
       method: 'DELETE',
-      headers: this.getHeaders()
+      headers: this.getHeaders(),
     });
   }
-  
+
   async updateTweet(tweetId, text) {
     return this.http.fetch(`/tweets/${tweetId}`, {
       method: 'PUT',
       headers: this.getHeaders(),
-      body: JSON.stringify({text})
+      body: JSON.stringify({ text }),
     });
   }
 
-  getHeaders(){
+  getHeaders() {
     const token = this.tokenStorage.getToken();
     return {
-      Authorization: `Bearer ${token}`
-    }
+      Authorization: `Bearer ${token}`,
+    };
+  }
+
+  onSync(callback) {
+    return this.socket.onSync('tweets', callback);
   }
 }
