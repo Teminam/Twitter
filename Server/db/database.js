@@ -1,30 +1,21 @@
-import mysql from 'mysql2'
-import {config} from '../config.js'
-import SQ from 'sequelize'
+import { config } from '../config.js';
+import MongoDb from 'mongodb';
 
-const {host, user, database, password} = config.db
+let db;
+export async function connectDB(){
+    return MongoDb.MongoClient.connect(config.db.host)
+        .then((client) => {
+            db = client.db()
+        });
+}
 
-export const sequelize = new SQ.Sequelize(database, user, password, {
-    host,
-    dialect: 'mysql',
-    logging: false,
-    // timezone: '+09:00'
-    timezone: "Asia/Seoul"  // 똑같음
+// 몽고디비는 스키마가 없음
+// 비정형 형태, 규칙 따로 x
 
-})
+export function getUsers(){
+    return db.collection('users');
+}
 
-/*
-import mysql from 'mysql2'
-import dotenv from 'dotenv'
-
-dotenv.config()
-
-const pool = mysql.createPool({
-host: process.env.DB_HOST,
-user: process.env.DB_USER,
-database: process.env.DB_DATABASE,
-password: process.env.DB_PASSWORD
-})
-
-export const db = pool.promise()
-*/
+export function getTweets(){
+    return db.collection('Tweets');
+}

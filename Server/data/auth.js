@@ -1,51 +1,42 @@
-import SQ from 'sequelize'
-import { sequelize } from '../db/database.js'
-const DataTypes = SQ.DataTypes
+import { getUsers } from '../db/database.js';
+import MongoDb from 'mongodb';
 
-export const User = sequelize.define(
-    'user',
-    {
-        id: {
-            type: DataTypes.INTEGER,
-            autoIncrement: true,
-            allowNull: false,
-            primaryKey: true,
-        },
-        username: {
-            type: DataTypes.STRING(45),
-            allowNull: false
-        },
-        password: {
-            type: DataTypes.STRING(128),
-            allowNull: false
-        },
-        name: {
-            type: DataTypes.STRING(45),
-            allowNull: false
-        },
-        email: {
-            type: DataTypes.STRING(128),
-            allowNull: false
-        },
-        url: DataTypes.TEXT,
-        // regdate: 날짜타입, 현재시간을 자동으로 등록
-        regdate: {
-            type: DataTypes.DATE,
-            defaultValue: DataTypes.NOW
-        }
-    },
-    {timestamps: false}
-)
+const ObjectID = MongoDb.ObjectId; // rDBMS에서는 pk와 같음, 랜덤문자 발행
 
+export async function findByUsername(username) {
+    return getUsers()
+        .find({username})
+        .next()
+        .then(mapOptionalUser);
+};
 
-export async function findByUsername(username){
-    return User.findOne({where: {username}})
-} 
+export async function createUser(user) {
+    return getUsers()
+        .insertOne(user)
+        .then((res) => {
+            console.log(res)});
+};
 
-export async function createUser(user){
-    return User.create(user).then((data) => data.dataValues.id)
-}   
+export async function findById(id) {
+    return getUsers()
+        .find({_id: new ObjectID(id) })
+        .next()
+        .then(mapOptionalUser)
+};
 
-export async function findById(id){
-    return User.findByPk(id)
+function mapOptionalUser(user){
+    return user ? { ...user, id: user._id.toString() } : user;
 }
+
+// export async function findByUsername(username) {
+//     return User.findOne({where: { username }});
+// };
+
+// export async function createUser(user) {
+//     return User.create(user)
+//         .then((data) => data.dataValues.id);
+// };
+
+// export async function findById(id) {
+//     return User.findByPk(id);
+// };
