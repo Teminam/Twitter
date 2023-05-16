@@ -1,32 +1,29 @@
-import { getUsers } from '../db/database.js';
-import MongoDb from 'mongodb';
+import Mongoose from "mongoose";
+import { useVirtualId } from "../db/database.js";
 
-const ObjectID = MongoDb.ObjectId; // rDBMS에서는 pk와 같음, 랜덤문자 발행
+const userSchema = new Mongoose.Schema({
+    username: {type:String, required: true},
+    name: {type:String, required: true},
+    email: {type:String, required: true},
+    password: {type:String, required: true},
+    url:String
+})
+
+useVirtualId(userSchema)
+const User = Mongoose.model('User', userSchema)
 
 export async function findByUsername(username) {
-    return getUsers()
-        .find({username})
-        .next()
-        .then(mapOptionalUser);
+    return User.findOne({username});
 };
 
 export async function createUser(user) {
-    return getUsers()
-        .insertOne(user)
-        .then((res) => {
-            console.log(res)});
+    return new User(user).save().then((data) => data.id)
 };
 
 export async function findById(id) {
-    return getUsers()
-        .find({_id: new ObjectID(id) })
-        .next()
-        .then(mapOptionalUser)
+    return User.findById(id)
 };
 
-function mapOptionalUser(user){
-    return user ? { ...user, id: user._id.toString() } : user;
-}
 
 // export async function findByUsername(username) {
 //     return User.findOne({where: { username }});
